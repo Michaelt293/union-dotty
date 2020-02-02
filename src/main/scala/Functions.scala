@@ -15,7 +15,7 @@ object Functions
 
   def readLines(path: String):
     Result[AccessControlError | FileNotFoundError, List[String]] =
-      Result.catchExceptions(Source.fromFile(path))
+      Result(Source.fromFile(path))
         .map(_.getLines.toList)
         .mapErrors {
           case err: AccessControlException => AccessControlError()
@@ -24,14 +24,14 @@ object Functions
         }
 
   def parseInt(str: String): Result[NumberFormatError, Int] =
-    Result.catchExceptions(str.toInt)
+    Result(str.toInt)
       .mapErrors {
         case err: NumberFormatException => NumberFormatError()
         case err => throw err
       }
 
   def average(ints: List[Int]): Result[ArithmeticError, Int] =
-    Result.catchExceptions(ints.sum / ints.length).mapErrors {
+    Result(ints.sum / ints.length).mapErrors {
       case err: ArithmeticException => ArithmeticError()
       case err => throw err
     }
@@ -47,5 +47,5 @@ object Functions
     Result[ArithmeticError | NumberFormatError, Int] =
       for {
         ints <- Result.traverse(lines)(parseInt)
-        ave <- average(ints)
+        ave <- average(ints.toList)
       } yield ave
