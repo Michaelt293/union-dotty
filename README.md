@@ -1,6 +1,6 @@
-## Error handling with union types in Dotty
+# Error handling with union types in Dotty
 
-### Introduction
+## Introduction
 
 In Scala, there are several common approaches to error handling, these include -
 
@@ -43,7 +43,7 @@ scala> eitherMissingArg.flatMap(_ => eitherFileNotFound)
 val res8: Either[ProgramError, Int] = Right(1)
 ```
 
-### Union types for errors
+## Union types for errors
 
 In Dotty (Scala 3), union types have been introduced. A union type has the form of `A | B` and indicates that an expression can have type `A` *OR* `B`. To experiment with using union types for errors, the type `Result` was defined. This type can succeed with a value of type `A` or fail with an error of type `E`.
 
@@ -77,6 +77,8 @@ scala> resultMissingArg.flatMap(_ => resultFileNotFound)
 val res6: Result[Errors.FileNotFoundError | Errors.MissingArgError, Int] = Success(1)
 ```
 
+## Partial error handling
+
 In addition, it is also possible to have partial error-handling tracked by the type system. For example, the method `handleSome` takes a function of type `E0 | E1 => Result[E0, A]` (where `E0` and`E1` are subtypes of `E` and `E0 | E1` is the same type as `E`) and returns a `Result[E0, A]`. This indicates that errors of `E1` have been successfully handled.
 
 ```scala
@@ -105,13 +107,26 @@ val resultWithErrorHandling:
 
 The Scala compiler can also detect if a pattern match is not exhaustive. For example, if the `MissingArgError` case was missing above, we would get the following warning -
 ```text
-[warn] -- [E029] Pattern Match Exhaustivity Warning: /Users/michaelthomas/src/union-dotty/src/main/scala/Main.s
+[warn] -- [E029] Pattern Match Exhaustivity Warning: /src/union-dotty/src/main/scala/Main.s
 cala:16:10 
 [warn] 16 |          err match
 [warn]    |          ^^^
 [warn]    |          match may not be exhaustive.
 [warn]    |
 [warn]    |          It would fail on pattern case: Errors.MissingArgError()
+```
+
+## Filter and guards
+
+An advantage of using union types as errors is that it is possible to define `filter` and `withFilter`. A `PredicateFalseError` is returned in the case where the predicate evaluates to `false`. Defining `withFilter` allows guards to be used in for comprehensions with `Result`.
+
+```scala
+val result: Result[ProgramError | PredicateFalseError[Int], Int] =
+  for {
+    lines <- getLines(args)
+    ave <- getAverage(lines)
+    if ave > 0
+  } yield ave
 ```
 
 ## Conclusion and potential issues
