@@ -4,10 +4,11 @@ object Main
   import Result._
 
   def main(args: Array[String]): Unit =
-    val result: Result[ProgramError, Int] = 
+    val result: Result[ProgramError | PredicateFalseError[Int], Int] =
       for {
         lines <- getLines(args)
         ave <- getAverage(lines)
+        if ave > 0
       } yield ave
 
     val resultWithErrorHandling: 
@@ -16,6 +17,7 @@ object Main
           err match
             case FileNotFoundError() => Success(0)
             case ArithmeticError() => Success(0)
+            case PredicateFalseError(_) => Success(0)
             case err @ MissingArgError() => Failure(err)
             case err @ AccessControlError() => Failure(err)
             case err @ NumberFormatError() => Failure(err)

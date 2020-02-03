@@ -1,7 +1,7 @@
 import scala.language.implicitConversions
 import scala.util.{Failure => TFailure, Success => TSuccess, Try}
 
-sealed trait Result[E, A]
+sealed trait Result[E, A] extends Product with Serializable
   import Result._
 
   def fold[B](fe: E => B, fa: A => B): B =
@@ -64,6 +64,22 @@ sealed trait Result[E, A]
     this match
       case Success(v) => if (p(v)) Success(v) else Failure(PredicateFalseError(v))
       case Failure(err) => Failure(err)
+
+  def withFilter(p: A => Boolean): WithFilter =
+    new WithFilter(p)
+
+  final class WithFilter(p: A => Boolean)
+    def map[B](f: A => B): Result[E | PredicateFalseError[A], B] =
+      Result.this.filter(p).map(f)
+
+    def flatMap[E0, B](f: A => Result[E0, B]): Result[E0 | E | PredicateFalseError[A], B] =
+      Result.this.filter(p).flatMap(f)
+
+    def foreach[U](f: A => U): Unit =
+      Result.this.filter(p).foreach(f)
+
+    def withFilter(q: A => Boolean): WithFilter =
+      new WithFilter(x => p(x) && q(x))
 
   def existsError(p: E => Boolean): Boolean =
     this match
