@@ -78,7 +78,7 @@ sealed trait Result[E, A]
       case Failure(err) => p(err)
       case _ => true
 
-  def handleErrors(f: E => A): A =
+  def handleError(f: E => A): A =
     this match
       case Success(v) => v
       case Failure(err) => f(err)
@@ -90,7 +90,7 @@ sealed trait Result[E, A]
       case Success(v) => Success(v)
       case Failure(err) => f(err)
 
-  def mapErrors[E0](f: E => E0): Result[E0, A] =
+  def mapError[E0](f: E => E0): Result[E0, A] =
     this match
       case Success(v) => Success(v)
       case Failure(err) => Failure(f(err))

@@ -11,13 +11,13 @@ object Functions
   def readArgs(args: Array[String]): Result[MissingArgError, String] =
     Result
       .fromOption(args.headOption)
-      .mapErrors(_ => MissingArgError())
+      .mapError(_ => MissingArgError())
 
   def readLines(path: String):
     Result[AccessControlError | FileNotFoundError, List[String]] =
       Result(Source.fromFile(path))
         .map(_.getLines.toList)
-        .mapErrors {
+        .mapError {
           case err: AccessControlException => AccessControlError()
           case err: FileNotFoundException => FileNotFoundError()
           case err => throw err
@@ -25,13 +25,13 @@ object Functions
 
   def parseInt(str: String): Result[NumberFormatError, Int] =
     Result(str.toInt)
-      .mapErrors {
+      .mapError {
         case err: NumberFormatException => NumberFormatError()
         case err => throw err
       }
 
   def average(ints: List[Int]): Result[ArithmeticError, Int] =
-    Result(ints.sum / ints.length).mapErrors {
+    Result(ints.sum / ints.length).mapError {
       case err: ArithmeticException => ArithmeticError()
       case err => throw err
     }
