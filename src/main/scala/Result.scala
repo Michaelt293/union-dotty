@@ -136,7 +136,7 @@ sealed trait Result[E, A] extends Product with Serializable
   def isFailure: Boolean
 
 object Result
-  def apply[A](a: A): Result[Throwable, A] =
+  def apply[A](a: => A): Result[Throwable, A] =
     fromTry(Try(a))
 
   final case class Success[E, A](value: A) extends Result[E, A]
