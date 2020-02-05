@@ -1,7 +1,7 @@
 import scala.language.implicitConversions
 import scala.util.{Failure => TFailure, Success => TSuccess, Try}
 
-sealed trait Result[E, A] extends Product with Serializable
+sealed trait Result[E, +A] extends Product with Serializable
   import Result._
 
   def fold[B](fe: E => B, fa: A => B): B =
@@ -9,22 +9,17 @@ sealed trait Result[E, A] extends Product with Serializable
       case Success(v) => fa(v)
       case Failure(err) => fe(err)
 
-  def swap: Result[A, E] =
-    this match
-      case Success(v) => Failure(v)
-      case Failure(err) => Success(err)
-
   def foreach[U](f: A => U): Unit =
     this match
       case Success(v) => f(v)
       case _ => ()
 
-  def getOrElse(or: => A): A =
+  def getOrElse[A1 >: A](or: => A1): A1 =
     this match
       case Success(v) => v
       case _ => or
 
-  def orElse[E0](or: => Result[E0, A]): Result[E | E0, A] =
+  def orElse[E0, A1 >: A](or: => Result[E0, A1]): Result[E | E0, A1] =
     this match
       case Success(v) => Success(v)
       case _ => or match
@@ -36,7 +31,7 @@ sealed trait Result[E, A] extends Product with Serializable
       case Success(v) => p(v)
       case _ => false
 
-  def contains(a: A): Boolean =
+  def contains[A1 >: A](a: A1): Boolean =
     this.exists(_ == a)
 
   def forall(p: A => Boolean): Boolean =
@@ -44,41 +39,37 @@ sealed trait Result[E, A] extends Product with Serializable
       case Success(v) => p(v)
       case _ => true
 
-  def map[B](f: A => B): Result[E, B] =
+  def map[A1 >: A, B](f: A1 => B): Result[E, B] =
     this match
       case Success(v) => Success(f(v))
       case Failure(err) => Failure(err)
 
-  def flatMap[E0, B](f: A => Result[E0, B]): Result[E0 | E, B] =
+  def flatMap[E0, A1 >: A, B](f: A1 => Result[E0, B]): Result[E0 | E, B] =
     this.map(f) match
       case Success(Success(v)) => Success(v)
       case Success(Failure(err)) => Failure(err)
       case Failure(err) => Failure(err)
 
-  def flatten[E0, B](implicit ev: A =:= Result[E0, B]): Result[E0 | E, B] =
-    this match
-      case Success(res) => res.asInstanceOf[Result[E0 | E, B]]
-      case Failure(err) => Failure(err)
-
-  def filter(p: A => Boolean): Result[E | PredicateFalseError[A], A] =
+  def filter[A1 >: A](p: A1 => Boolean): Result[E | PredicateFalseError[A1], A1] =
     this match
       case Success(v) => if (p(v)) Success(v) else Failure(PredicateFalseError(v))
       case Failure(err) => Failure(err)
 
-  def withFilter(p: A => Boolean): WithFilter =
+  def withFilter[A1 >: A](p: A1 => Boolean): WithFilter[A1] =
     new WithFilter(p)
 
-  final class WithFilter(p: A => Boolean)
-    def map[B](f: A => B): Result[E | PredicateFalseError[A], B] =
+  final class WithFilter[A1 >: A](p: A1 => Boolean)
+    def map[B](f: A1 => B): Result[E | PredicateFalseError[A1], B] =
       Result.this.filter(p).map(f)
 
-    def flatMap[E0, B](f: A => Result[E0, B]): Result[E0 | E | PredicateFalseError[A], B] =
-      Result.this.filter(p).flatMap(f)
+    def flatMap[E0, B](f: A1 => Result[E0, B]): Result[(E0 | E | PredicateFalseError[A1]), B] =
+       val result = Result.this.filter(p).flatMap(f)
+       result // Avoids Type Mismatch Error - Found: (f : A1 => Result[E0, B]), Required: A1 => Result[E0², B]
 
-    def foreach[U](f: A => U): Unit =
+    def foreach[U](f: A1 => U): Unit =
       Result.this.filter(p).foreach(f)
 
-    def withFilter(q: A => Boolean): WithFilter =
+    def withFilter(q: A1 => Boolean): WithFilter[A1] =
       new WithFilter(x => p(x) && q(x))
 
   def existsError(p: E => Boolean): Boolean =
@@ -94,14 +85,14 @@ sealed trait Result[E, A] extends Product with Serializable
       case Failure(err) => p(err)
       case _ => true
 
-  def handleError(f: E => A): A =
+  def handleError[A1 >: A](f: E => A1): A1 =
     this match
       case Success(v) => v
       case Failure(err) => f(err)
 
-  def handleSome[E0 <: E, E1 <: E](
-    f: E0 | E1 => Result[E0, A]
-    )(implicit ev: E =:= (E0 | E1)): Result[E0, A] =
+  def handleSome[E0 <: E, E1 <: E, A1 >: A](
+    f: E0 | E1 => Result[E0, A1]
+    )(implicit ev: E =:= (E0 | E1)): Result[E0, A1] =
     this match
       case Success(v) => Success(v)
       case Failure(err) => f(err)
