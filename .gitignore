@@ -1,2 +1,4 @@
 .dotty-ide-artifact
 .dotty-ide.json
+*.class
+*.tasty

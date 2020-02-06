@@ -62,7 +62,7 @@ sealed trait Result[E, +A] extends Product with Serializable
     def map[B](f: A1 => B): Result[E | PredicateFalseError[A1], B] =
       Result.this.filter(p).map(f)
 
-    def flatMap[E0, B](f: A1 => Result[E0, B]): Result[(E0 | E | PredicateFalseError[A1]), B] =
+    def flatMap[E0, B](f: A1 => Result[E0, B]): Result[E0 | E | PredicateFalseError[A1], B] =
        val result = Result.this.filter(p).flatMap(f)
        result // Avoids Type Mismatch Error - Found: (f : A1 => Result[E0, B]), Required: A1 => Result[E0², B]
 
