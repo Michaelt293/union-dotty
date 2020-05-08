@@ -1,4 +1,4 @@
-object Main
+object Main {
   import Errors._
   import Functions._
   import Result._
@@ -6,8 +6,10 @@ object Main
   def main(args: Array[String]): Unit =
     val result: Result[ProgramError | PredicateFalseError[Int], Int] =
       for {
-        lines <- getLines(args)
-        ave <- getAverage(lines)
+        path <- readArgs(args)
+        lines <- readLines(path)
+        ints <- Result.traverse(lines)(parseInt)
+        ave <- average(ints.toList)
         if ave > 0
       } yield ave
 
@@ -26,3 +28,4 @@ object Main
     println(s"Result: $result")
 
     println(s"Result after partial error handling: $resultWithErrorHandling")
+}

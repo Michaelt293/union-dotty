@@ -4,7 +4,7 @@ import java.security.AccessControlException
 
 import scala.io.Source
 
-object Functions
+object Functions {
   import Errors._
   import Result._
 
@@ -35,17 +35,4 @@ object Functions
       case err: ArithmeticException => ArithmeticError()
       case err => throw err
     }
-
-  def getLines(args: Array[String]): 
-    Result[MissingArgError | AccessControlError | FileNotFoundError, List[String]] =
-      for {
-        path <- readArgs(args)
-        lines <- readLines(path)
-      } yield lines
-
-  def getAverage(lines: List[String]): 
-    Result[ArithmeticError | NumberFormatError, Int] =
-      for {
-        ints <- Result.traverse(lines)(parseInt)
-        ave <- average(ints.toList)
-      } yield ave
+}

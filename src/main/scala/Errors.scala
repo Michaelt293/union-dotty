@@ -1,4 +1,4 @@
-object Errors
+object Errors {
   final case class MissingArgError()
   final case class FileNotFoundError()
   final case class ArithmeticError()
@@ -11,3 +11,4 @@ object Errors
     FileNotFoundError | 
     ArithmeticError | 
     NumberFormatError
+}

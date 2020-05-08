@@ -1,7 +1,7 @@
 import scala.language.implicitConversions
 import scala.util.{Failure => TFailure, Success => TSuccess, Try}
 
-sealed trait Result[E, +A] extends Product with Serializable
+sealed trait Result[E, +A] extends Product with Serializable {
   import Result._
 
   def fold[B](fe: E => B, fa: A => B): B =
@@ -58,19 +58,19 @@ sealed trait Result[E, +A] extends Product with Serializable
   def withFilter[A1 >: A](p: A1 => Boolean): WithFilter[A1] =
     new WithFilter(p)
 
-  final class WithFilter[A1 >: A](p: A1 => Boolean)
+  final class WithFilter[A1 >: A](p: A1 => Boolean) {
     def map[B](f: A1 => B): Result[E | PredicateFalseError[A1], B] =
       Result.this.filter(p).map(f)
 
     def flatMap[E0, B](f: A1 => Result[E0, B]): Result[E0 | E | PredicateFalseError[A1], B] =
-       val result = Result.this.filter(p).flatMap(f)
-       result // Avoids Type Mismatch Error - Found: (f : A1 => Result[E0, B]), Required: A1 => Result[E0², B]
+      Result.this.filter(p).flatMap(f)
 
     def foreach[U](f: A1 => U): Unit =
       Result.this.filter(p).foreach(f)
 
     def withFilter(q: A1 => Boolean): WithFilter[A1] =
       new WithFilter(x => p(x) && q(x))
+  }
 
   def existsError(p: E => Boolean): Boolean =
     this match
@@ -125,25 +125,29 @@ sealed trait Result[E, +A] extends Product with Serializable
   def isSuccess: Boolean
 
   def isFailure: Boolean
+}
 
-object Result
+object Result {
   def apply[A](a: => A): Result[Throwable, A] =
     fromTry(Try(a))
 
-  final case class Success[E, A](value: A) extends Result[E, A]
+  final case class Success[E, A](value: A) extends Result[E, A] {
 
     def isSuccess: Boolean = true
 
     def isFailure: Boolean = false
+  }
 
-  final case class Failure[E, A](error: E) extends Result[E, A]
+  final case class Failure[E, A](error: E) extends Result[E, A] {
 
     def isSuccess: Boolean = false
 
     def isFailure: Boolean = true
+  }
 
-  final case class PredicateFalseError[A](value: A)
+  final case class PredicateFalseError[A](value: A) extends AnyVal {
     def message: String = s"Predicate was false for: $value"
+  }
 
   def cond[E, A](test: Boolean, success: => A, failure: => E): Result[E, A] =
     if (test) Success(success) else Failure(failure)
@@ -174,3 +178,4 @@ object Result
     `try` match
       case TFailure(err) => Failure(err)
       case TSuccess(v) => Success(v)
+}

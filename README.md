@@ -129,32 +129,6 @@ val result: Result[ProgramError | PredicateFalseError[Int], Int] =
   } yield ave
 ```
 
-## Conclusion and potential issues
+## Conclusion
 
-The use of union types for errors seems very promising. Being able to introduce and eliminate error types is incredibly powerful for the fine-grained tracking of errors. Unfortunately, I did run into an issue with `Recursion limit exceeded` when chaining `Result`s within a for comprehension. For example, the function `getAverage` resulted in their compile-time error below -
-
-```scala
-def getAverage(args: Array[String]): 
-  Result[ProgramError, Int] = // ProgramError is a type alias
-    for {
-      path <- readArgs(args)
-      lines <- readLines(path)
-      ints <- Result.traverse(lines)(parseInt)
-      ave <- average(ints)
-    } yield ave
-```
-
-```text
-[error] 65 |        ints <- Result.traverse(lines)(parseInt)
-[error]    |        ^
-[error]    |Recursion limit exceeded.
-[error]    |Maybe there is an illegal cyclic reference?
-[error]    |If that's not the case, you could also try to increase the stacksize using the -Xss JVM option.
-[error]    |A recurring operation is (inner to outer):
-[error]    |
-[error]    |  subtype E0 & Main.MissingArgError | Main.AccessControlError | Main.FileNotFoundError <:< Any | Main.NumberFormatError
-[error]    |  subtype E0 <:< Any | Main.NumberFormatError
-[error]    |  subtype Result[Any | Main.NumberFormatError, Any] <:< Result[E0, List[String]]
-```
-
-Increasing the stack size as suggested did not resolve this issue but splitting the for comprehension into two smaller for comprehensions did.
+The use of union types for errors seems very promising. Being able to introduce and eliminate error types is incredibly powerful for the fine-grained tracking of errors.
