@@ -1,3 +1,5 @@
+package io.github.michaelt293.union
+
 import scala.language.implicitConversions
 import scala.util.{Failure => TFailure, Success => TSuccess, Try}
 
