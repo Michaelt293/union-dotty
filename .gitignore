@@ -2,3 +2,4 @@
 .dotty-ide.json
 *.class
 *.tasty
+_site/

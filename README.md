@@ -1,3 +1,31 @@
+# Union-dotty
+
+This library should only be used for experimental purposes to explore the use of union types for errors.
+
+## Quick start
+
+Add the following to to your `build.sbt` file -
+
+```
+libraryDependencies += "io.github.michaelt293" % "union-dotty_0.24" % "0.1.0"
+```
+
+## Example usage
+
+```scala
+import io.github.michaelt293.union.Result
+
+object Main {
+  def main(args: Array[String]): Unit = {
+    val success = Result.Success("Fantastic")
+    val failure = Result.Failure("Oh no")
+
+    println(failure.orElse(success).map(_ => "Success!"))
+    // prints Success(Success!)
+  }
+}
+```
+
 # Error handling with union types in Dotty
 
 ## Introduction
