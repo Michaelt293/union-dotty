@@ -92,9 +92,9 @@ sealed trait Result[E, +A] extends Product with Serializable {
       case Success(v) => v
       case Failure(err) => f(err)
 
-  def handleSome[E0 <: E, E1 <: E, A1 >: A](
-    f: E0 | E1 => Result[E0, A1]
-    )(implicit ev: E =:= (E0 | E1)): Result[E0, A1] =
+  def handleSome[E0 <: E, E1 <: E, E2, A1 >: A](
+    f: E0 | E1 => Result[E1 | E2, A1]
+    )(implicit ev: E =:= (E0 | E1)): Result[E1 | E2, A1] =
     this match
       case Success(v) => Success(v)
       case Failure(err) => f(err)

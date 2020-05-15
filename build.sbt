@@ -9,7 +9,7 @@ lazy val root = project
     organization := "io.github.michaelt293",
     licenses := Seq("APL2" -> url("https://www.apache.org/licenses/LICENSE-2.0.txt")),
     description := "Error handling with union types in Dotty",
-    version := "0.1.0",
+    version := "0.2.0",
 
     sonatypeProjectHosting := Some(GitHubHosting("Michaelt293", "union-dotty", "Michaelt293@gmail.com")),
 

@@ -107,12 +107,12 @@ val res6: Result[Errors.FileNotFoundError | Errors.MissingArgError, Int] = Succe
 
 ## Partial error handling
 
-In addition, it is also possible to have partial error-handling tracked by the type system. For example, the method `handleSome` takes a function of type `E0 | E1 => Result[E0, A]` (where `E0` and`E1` are subtypes of `E` and `E0 | E1` is the same type as `E`) and returns a `Result[E0, A]`. This indicates that errors of `E1` have been successfully handled.
+In addition, it is also possible to have partial error-handling tracked by the type system. For example, the method `handleSome` takes a function of type `E0 | E1 => Result[E1 | E2, A1]` (where `E0` and`E1` are subtypes of `E` and `E0 | E1` is the same type as `E`) and returns a `Result[E1 | E2, A1]`. This indicates that errors of `E0` have been successfully handled.
 
 ```scala
-def handleSome[E0 <: E, E1 <: E](
-  f: E0 | E1 => Result[E0, A]
-  )(implicit ev: E =:= (E0 | E1)): Result[E0, A] =
+def handleSome[E0 <: E, E1 <: E, E2, A1 >: A](
+  f: E0 | E1 => Result[E1 | E2, A1]
+  )(implicit ev: E =:= (E0 | E1)): Result[E1 | E2, A1] =
   this match
     case Success(v) => Success(v)
     case Failure(err) => f(err)
